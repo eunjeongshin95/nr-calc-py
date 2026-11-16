@@ -1,0 +1,138 @@
+/* 5G NR Calculator 화면 스타일. PC는 2열, 폭이 좁으면(핸드폰) 1열. */
+
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #1c2430;
+  --muted: #5d6b7c;
+  --line: #d8dee6;
+  --accent: #1f6feb;
+  --accent-text: #ffffff;
+  --input-bg: #ffffff;
+  --error: #c62828;
+  --warn: #9a6200;
+  --ok: #1b7f3a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161c;
+    --card: #1b2129;
+    --text: #e6ebf1;
+    --muted: #97a3b2;
+    --line: #2f3843;
+    --accent: #4c8dff;
+    --accent-text: #0b1220;
+    --input-bg: #11161c;
+    --error: #ff7b72;
+    --warn: #e3b341;
+    --ok: #56d364;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }  /* hidden 속성이 display: flex 등에 덮이지 않게 */
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.top { padding: 16px 16px 4px; max-width: 1200px; margin: 0 auto; }
+h1 { margin: 0; font-size: 1.4rem; }
+.sub { margin: 2px 0 8px; color: var(--muted); }
+h2 { margin: 0 0 12px; font-size: 1.05rem; }
+
+.status { font-size: 0.9rem; padding: 6px 10px; border-radius: 6px; display: inline-block; }
+.status.loading { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+.status.ready { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.status.failed { background: color-mix(in srgb, var(--error) 15%, transparent); color: var(--error); }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+@media (max-width: 760px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px 12px;
+}
+
+label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+label.inline { flex-direction: row; align-items: center; gap: 6px; color: var(--text); font-size: 0.95rem; }
+
+input, select, button {
+  font: inherit;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-width: 0;
+}
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input.narrow { width: 64px; }
+
+fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 12px 0 0; padding: 8px 12px 12px; }
+legend { color: var(--muted); font-size: 0.85rem; padding: 0 4px; }
+fieldset.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+fieldset.row > .grid { width: 100%; }
+fieldset.mode { margin-top: 0; }
+
+button { cursor: pointer; }
+button.primary, #form_recalc button {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.mode-form { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.mode-form button { align-self: flex-start; padding: 8px 24px; }
+
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.stale { color: var(--warn); }
+
+.tbs { margin-bottom: 12px; }
+.big { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.margin { font-size: 0.9rem; margin-top: 2px; }
+.margin.pos { color: var(--ok); }
+.margin.neg { color: var(--error); }
+
+.edit { align-items: end; padding: 12px; border: 1px dashed var(--line); border-radius: 8px; }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 12px 0 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.msgs { margin: 8px 0 0; padding-left: 18px; }
+.msgs:empty { display: none; }
+.msgs.error { color: var(--error); }
+.msgs.warn { color: var(--warn); }
+
+.foot { text-align: center; color: var(--muted); font-size: 0.8rem; padding: 8px 16px 24px; }

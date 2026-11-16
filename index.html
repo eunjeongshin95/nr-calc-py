@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>5G NR Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Pyodide: 브라우저 안의 Python 인터프리터 (3단계는 CDN, 4단계에서 vendor/로 교체) -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <h1>5G NR Calculator</h1>
+    <p class="sub">TB size · data rate 계산 (TS 38.214 5.1.3)</p>
+    <div id="status" class="status loading">Python 엔진(Pyodide) 불러오는 중…</div>
+  </header>
+
+  <main class="layout">
+    <!-- ============ 시스템 설정 (spec §2.1) ============ -->
+    <section class="card" id="sys">
+      <h2>시스템 설정</h2>
+
+      <div class="grid">
+        <label>Subcarrier spacing
+          <select id="scs_khz">
+            <option value="15">15 kHz</option>
+            <option value="30" selected>30 kHz</option>
+            <option value="60">60 kHz</option>
+            <option value="120">120 kHz</option>
+          </select>
+        </label>
+        <label>채널 대역폭 (보조)
+          <select id="bandwidth"></select>
+        </label>
+        <label>최대 RB
+          <input id="n_rb_max" type="number" min="1" max="275" value="273">
+        </label>
+        <label>Tx antenna
+          <select id="n_tx"><option>1</option><option>2</option><option selected>4</option><option>8</option></select>
+        </label>
+        <label>Rx antenna
+          <select id="n_rx"><option>1</option><option>2</option><option selected>4</option><option>8</option></select>
+        </label>
+        <label>MCS 표
+          <select id="mcs_table">
+            <option value="64qam">64QAM (표 5.1.3.1-1)</option>
+            <option value="256qam" selected>256QAM (표 5.1.3.1-2)</option>
+            <option value="1024qam">1024QAM (표 5.1.3.1-4, DL)</option>
+          </select>
+        </label>
+      </div>
+
+      <fieldset class="row">
+        <legend>링크 방향</legend>
+        <label class="inline"><input type="radio" name="link" value="DL" checked> DL (PDSCH)</label>
+        <label class="inline"><input type="radio" name="link" value="UL"> UL (PUSCH)</label>
+      </fieldset>
+
+      <fieldset class="row">
+        <legend>슬롯 심볼 구성 (합 = 14)</legend>
+        <label class="inline">DL <input id="n_dl" type="number" min="0" max="14" value="14" class="narrow"></label>
+        <label class="inline">Flexible <input id="n_f" type="number" min="0" max="14" value="0" class="narrow"></label>
+        <label class="inline">UL <input id="n_ul" type="number" min="0" max="14" value="0" class="narrow"></label>
+        <span id="symb_sum" class="hint"></span>
+      </fieldset>
+
+      <fieldset class="row">
+        <legend>DMRS (single-symbol, mapping type A)</legend>
+        <div class="grid">
+          <label>Additional position
+            <select id="dmrs_pos">
+              <option value="0">pos0</option><option value="1">pos1</option>
+              <option value="2" selected>pos2</option><option value="3">pos3</option>
+            </select>
+          </label>
+          <label>Configuration type
+            <select id="dmrs_type">
+              <option value="1" selected>type 1</option>
+              <option value="2">type 2</option>
+            </select>
+          </label>
+          <label>data 없는 CDM group 수
+            <select id="n_cdm"><option>1</option><option selected>2</option></select>
+            <span id="cdm_hint" class="hint"></span>
+          </label>
+          <label>xOverhead
+            <select id="x_overhead"><option>0</option><option>6</option><option>12</option><option>18</option></select>
+          </label>
+        </div>
+      </fieldset>
+
+      <ul id="sys_errors" class="msgs error"></ul>
+    </section>
+
+    <div class="col">
+      <!-- ============ 모드 / 입력 (spec §2.2) ============ -->
+      <section class="card" id="input">
+        <h2>계산 모드</h2>
+        <fieldset class="row mode">
+          <label class="inline"><input type="radio" name="mode" value="tb" checked> TB size mode</label>
+          <label class="inline"><input type="radio" name="mode" value="res"> 자원 size mode</label>
+        </fieldset>
+
+        <form id="form_tb" class="mode-form">
+          <label>송신 데이터 (Byte)
+            <input id="n_bytes" type="number" min="1" step="1" value="40000">
+          </label>
+          <button type="submit" class="primary" disabled>계산</button>
+          <p class="hint">입력을 모두 담는 가장 작은 TBS와, 가장 낮은 변조 차수·최소 RB를 찾습니다. 기본은 1 layer이며 부족할 때만 layer를 늘립니다.</p>
+        </form>
+
+        <form id="form_res" class="mode-form" hidden>
+          <div class="grid">
+            <label>변조 차수 <select id="in_qm"></select></label>
+            <label>Layer <select id="in_v"></select></label>
+            <label>RB 개수 <input id="in_prb" type="number" min="1" value="273"></label>
+            <label>심볼 수 <input id="in_symb" type="number" min="3" max="14" value="14"></label>
+          </div>
+          <p id="in_dmrs" class="hint"></p>
+          <button type="submit" class="primary" disabled>계산</button>
+          <p class="hint">변조 차수 안에서 코딩레이트가 가장 높은 MCS로 최적 TBS를 계산합니다.</p>
+        </form>
+      </section>
+
+      <!-- ============ 결과 (두 모드 공용, spec §2.3) ============ -->
+      <section class="card" id="result">
+        <h2>결과</h2>
+        <p id="res_empty" class="hint">계산 버튼을 누르면 결과가 여기에 나옵니다.</p>
+        <div id="res_body" hidden>
+          <div class="tbs">
+            <div><span class="big" id="r_tbs_bits"></span> bit</div>
+            <div class="hint"><span id="r_tbs_bytes"></span> Byte</div>
+            <div id="r_margin" class="margin"></div>
+          </div>
+
+          <form id="form_recalc" class="grid edit">
+            <label>변조 차수 <select id="r_qm"></select></label>
+            <label>Layer <select id="r_v"></select></label>
+            <label>RB 개수 <input id="r_prb" type="number" min="1"></label>
+            <label>심볼 수 <input id="r_symb" type="number" min="3" max="14"></label>
+            <button type="submit">재계산</button>
+          </form>
+
+          <dl class="kv">
+            <dt>MCS index</dt><dd id="r_mcs"></dd>
+            <dt>코딩레이트</dt><dd id="r_rate"></dd>
+            <dt>DMRS</dt><dd id="r_dmrs"></dd>
+            <dt>Data rate</dt><dd id="r_dr"></dd>
+          </dl>
+          <p id="r_stale" class="hint stale" hidden>설정이 바뀌었습니다. 다시 계산하면 반영됩니다.</p>
+        </div>
+        <ul id="res_warnings" class="msgs warn"></ul>
+        <ul id="res_errors" class="msgs error"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">계산 규칙: docs/spec.md · 3GPP TS 38.214 / 38.211 / 38.212</footer>
+</body>
+</html>

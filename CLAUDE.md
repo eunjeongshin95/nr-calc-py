@@ -25,7 +25,8 @@ tests/test_nr_calc.py pytest 골든 벡터 (KNOWN_TBS 표에 사용자 값 추�
 requirements-dev.txt  개발용 패키지 목록 (pytest 버전 고정)
 pytest.ini            pytest 설정 (루트의 nr_calc.py를 import하도록 pythonpath 지정)
 .venv/                가상환경 (git 제외, pytest 설치됨)
-index.html, style.css, app.js        화면 (3단계, 저장소 루트에 둠)
+index.html, style.css, app.js        화면 (저장소 루트에 둠). app.js가 Pyodide로 nr_calc.py를 불러와 api_call(name, JSON)로 호출
+.claude/launch.json   Claude 미리보기용 로컬 서버 설정
 manifest.webmanifest, sw.js, icons/, vendor/pyodide/   PWA (4단계)
 docs/spec.md          계산 규칙 기준 문서
 ```
@@ -38,6 +39,8 @@ docs/spec.md          계산 규칙 기준 문서
 - 테스트: `python -m pytest` (자세히: `-v`, 한 개만: `-k 이름`). 가상환경을 안 켰으면 `.venv\Scripts\python.exe -m pytest`
 - 가상환경 다시 만들기: `python -m venv .venv` → `.venv\Scripts\python.exe -m pip install -r requirements-dev.txt`
 - 개발용 패키지를 추가하면 `requirements-dev.txt`에 `이름==버전`으로 고정해 적습니다.
+- 화면 실행: `python -m http.server 8000` → 브라우저에서 `http://localhost:8000` (index.html을 더블클릭해 file://로 열면 동작 안 함). nr_calc.py를 고치면 새로고침만 하면 반영됩니다.
+- Pyodide는 현재 CDN(jsdelivr, v0.27.7, 내장 Python 3.12)에서 받으므로 인터넷이 필요합니다 (4단계에서 vendor/로 교체). nr_calc.py는 Python 3.12에서도 돌아가야 합니다.
 - 즉석 확인: `python -c "import nr_calc; print(nr_calc.best_tbs({'dmrs_pos': 0}, 8, 1, 273, 14))"`
 - PowerShell에서 한글이 깨지면 `$env:PYTHONIOENCODING='utf-8'`를 먼저 실행합니다.
 
