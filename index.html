@@ -4,9 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>5G NR Calculator</title>
+  <!-- PWA: 설치용 정보(앱 이름·아이콘)와 테마 색 -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1f6feb">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
-  <!-- Pyodide: 브라우저 안의 Python 인터프리터 (3단계는 CDN, 4단계에서 vendor/로 교체) -->
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+  <!-- Pyodide: 브라우저 안의 Python 인터프리터. 오프라인 동작을 위해 저장소 안 vendor/에 둔다 (v0.27.7) -->
+  <script src="vendor/pyodide/pyodide.js"></script>
   <script src="app.js" defer></script>
 </head>
 <body>

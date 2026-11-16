@@ -354,7 +354,7 @@ async function boot() {
     status.textContent = `준비 완료 · Pyodide ${PYODIDE_VERSION} (Python ${pyVer})`;
   } catch (err) {
     status.className = "status failed";
-    status.textContent = `Python 엔진을 불러오지 못했습니다: ${err.message}. 인터넷 연결을 확인하세요 (Pyodide는 CDN에서 받습니다).`;
+    status.textContent = `Python 엔진을 불러오지 못했습니다: ${err.message}. 처음 실행이면 인터넷(또는 로컬 서버) 연결을 확인하세요.`;
     console.error(err);
     return;
   }
@@ -389,6 +389,11 @@ async function boot() {
   $("form_res").addEventListener("submit", onResMode);
   $("form_recalc").addEventListener("submit", onRecalc);
   for (const b of document.querySelectorAll("button.primary")) b.disabled = false;
+}
+
+// PWA: service worker 등록 → 앱 파일과 Pyodide를 캐시에 저장해 오프라인에서도 실행 (sw.js)
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker.register("sw.js").catch((err) => console.warn("service worker 등록 실패:", err));
 }
 
 boot();

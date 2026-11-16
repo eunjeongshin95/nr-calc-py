@@ -27,7 +27,11 @@ pytest.ini            pytest 설정 (루트의 nr_calc.py를 import하도록 pyt
 .venv/                가상환경 (git 제외, pytest 설치됨)
 index.html, style.css, app.js        화면 (저장소 루트에 둠). app.js가 Pyodide로 nr_calc.py를 불러와 api_call(name, JSON)로 호출
 .claude/launch.json   Claude 미리보기용 로컬 서버 설정
-manifest.webmanifest, sw.js, icons/, vendor/pyodide/   PWA (4단계)
+manifest.webmanifest  PWA 설치 정보 (이름, 아이콘, start_url은 상대 경로 → GitHub Pages 하위 경로에서도 동작)
+sw.js                 service worker. 앱 파일은 네트워크 우선, vendor/는 캐시 우선. 캐시 목록·vendor 버전을 바꾸면 CACHE 이름 숫자를 올림
+icons/                앱 아이콘 (tools/make_icons.py로 생성)
+vendor/pyodide/       Pyodide 0.27.7 원본 파일 (줄바꿈 변환 금지: .gitattributes). 출처·라이선스는 SOURCE.md
+tools/serve.py        개발용 로컬 서버 (Windows에서 .js MIME 문제 해결)
 docs/spec.md          계산 규칙 기준 문서
 ```
 
@@ -39,8 +43,11 @@ docs/spec.md          계산 규칙 기준 문서
 - 테스트: `python -m pytest` (자세히: `-v`, 한 개만: `-k 이름`). 가상환경을 안 켰으면 `.venv\Scripts\python.exe -m pytest`
 - 가상환경 다시 만들기: `python -m venv .venv` → `.venv\Scripts\python.exe -m pip install -r requirements-dev.txt`
 - 개발용 패키지를 추가하면 `requirements-dev.txt`에 `이름==버전`으로 고정해 적습니다.
-- 화면 실행: `python -m http.server 8000` → 브라우저에서 `http://localhost:8000` (index.html을 더블클릭해 file://로 열면 동작 안 함). nr_calc.py를 고치면 새로고침만 하면 반영됩니다.
-- Pyodide는 현재 CDN(jsdelivr, v0.27.7, 내장 Python 3.12)에서 받으므로 인터넷이 필요합니다 (4단계에서 vendor/로 교체). nr_calc.py는 Python 3.12에서도 돌아가야 합니다.
+- 화면 실행: `python tools/serve.py` → 브라우저에서 `http://localhost:8000` (index.html을 더블클릭해 file://로 열면 동작 안 함). nr_calc.py를 고치면 새로고침만 하면 반영됩니다.
+  - `python -m http.server`는 쓰지 않습니다: Windows에서 .js를 text/plain으로 보내 service worker와 Pyodide가 막힙니다.
+- Pyodide는 vendor/pyodide/(v0.27.7, 내장 Python 3.12)에서 불러옵니다. 인터넷 없이 동작하며, nr_calc.py는 Python 3.12에서도 돌아가야 합니다.
+- PC 설치: Chrome/Edge로 `http://localhost:8000`을 열고 주소창 오른쪽 "앱 설치" 아이콘. 설치한 앱도 서버가 켜져 있어야 첫 실행이 되고, 그 뒤로는 오프라인 동작.
+- 아이콘 다시 만들기: `python tools/make_icons.py`
 - 즉석 확인: `python -c "import nr_calc; print(nr_calc.best_tbs({'dmrs_pos': 0}, 8, 1, 273, 14))"`
 - PowerShell에서 한글이 깨지면 `$env:PYTHONIOENCODING='utf-8'`를 먼저 실행합니다.
 
