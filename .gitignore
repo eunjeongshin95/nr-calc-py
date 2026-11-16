@@ -1,0 +1,12 @@
+# Python이 import할 때 자동으로 만드는 컴파일 캐시 (빌드 산출물)
+__pycache__/
+*.pyc
+
+# 가상환경 (2단계에서 생성, PC마다 다시 만들 수 있음)
+.venv/
+
+# pytest 캐시
+.pytest_cache/
+
+# VS Code 개인 설정
+.vscode/
